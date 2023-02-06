@@ -18,10 +18,11 @@ ApplicationWindow {
     property variant listRnd: []                                        //                     after draw
 
     property bool empty
+    property bool gameOver
 
     function listValFill() {                                            // fill array by elements
         listVal = []
-        for(let i = 1; i <= elemNo; i++) {                              // here int i loop are array elements (values)
+        for(let i = 1; i <= elemNo; i++) {                              // here: int i loop are array elements (values)
             listVal.push(i);
         }
     }
@@ -29,7 +30,7 @@ ApplicationWindow {
     function listRndFill() {                                            // draw
         listRnd = []
         let listValDecrease = elemNo
-        for(let i = 0; i < elemNo; i++) {                               // here int i loop are array index
+        for(let i = 0; i < elemNo; i++) {                               // here: int i loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease )
             //console.log("rnd:  ",rnd)
             listRnd[i] = listVal[rnd]
@@ -38,23 +39,49 @@ ApplicationWindow {
             //console.log("arr1: ",listVal[0])
         }
     }
+
+    Button {
+        id: button
+        width: mainW.width/3
+        height: mainW.height/6
+        anchors.right: parent.right
+
+        background: Rectangle {
+               color: inputHandler.pressed ? "darkgoldenrod" : "royalblue"
+               border {color: inputHandler.pressed ? "red" : "cadetblue"; width: button.width/40}
+
+               Text {
+                     anchors.centerIn: parent
+                     color: inputHandler.pressed ? "maroon" : "darkblue"
+                     text: "Generate"
+               }
+
+               TapHandler {
+                      id: inputHandler
+                  }
+            }
+
+
+
+        onClicked: {
+            listValFill()
+            console.log("listVal: ",listVal)
+            listRndFill()
+            console.log("listRnd: ",listRnd)
+        }
+
+    }
         Rectangle {
             id: area
-            width: mainW.width/1.2
+            width: mainW.width/1.5
             height: mainW.height
-            anchors.centerIn: parent
+            anchors.left: parent.left
             color: "darkblue"
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    listValFill()
-                    console.log("listVal: ",listVal)
-                    listRndFill()
-                    console.log("listRnd: ",listRnd)
-                }
             }
-        } /*
+        }
+
+
+        /*
         Timer {
             interval: 2500
             repeat: true
@@ -63,6 +90,6 @@ ApplicationWindow {
 
             }
         }*/
-}
+
 
 
