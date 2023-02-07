@@ -10,8 +10,8 @@ ApplicationWindow {
     title: qsTr("nElementPuzzle")
     color: "blue"
 
-    property int xDim: 4                                                // puzzle dimensions
-    property int yDim: 4
+    property int xDim: 7                                               // puzzle dimensions
+    property int yDim: 7
     property int elemNo: (xDim * yDim) - 1                              // number of puzzle elements
 
     property variant listVal: []                                        // array of elements:  before draw
@@ -22,7 +22,7 @@ ApplicationWindow {
 
     function listValFill() {                                            // fill array by elements
         listVal = []
-        for(let i = 1; i <= elemNo; i++) {                              // here: int i loop are array elements (values)
+        for(let i = 1; i <= elemNo; i++) {                              // here: int 'i' loop are array elements (values)
             listVal.push(i);
         }
     }
@@ -30,7 +30,7 @@ ApplicationWindow {
     function listRndFill() {                                            // draw
         listRnd = []
         let listValDecrease = elemNo
-        for(let i = 0; i < elemNo; i++) {                               // here: int i loop are array index
+        for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease )
             //console.log("rnd:  ",rnd)
             listRnd[i] = listVal[rnd]
@@ -54,22 +54,20 @@ ApplicationWindow {
                      anchors.centerIn: parent
                      color: inputHandler.pressed ? "maroon" : "darkblue"
                      text: "Generate"
-               }
+                }
 
                TapHandler {
                       id: inputHandler
-                  }
+                }
             }
-
-
 
         onClicked: {
             listValFill()
             console.log("listVal: ",listVal)
             listRndFill()
             console.log("listRnd: ",listRnd)
+            listRndChanged()
         }
-
     }
         Rectangle {
             id: area
@@ -77,19 +75,44 @@ ApplicationWindow {
             height: mainW.height
             anchors.left: parent.left
             color: "darkblue"
+            /*
+            function arrDisplay() {
+                for(let i = 0; i < elemNo; i++) {
+                    console.log("no ",i,"= ",listRnd[i])
+                }
+            }
+            */
+            Repeater {
+                model: elemNo
+                delegate: Rectangle {
+                    id: element
+                    x: (index % mainW.xDim) * area.width/xDim                   // important MATHEMATICAL FORMULA
+                    y:  Math.floor(index / yDim) * area. height/yDim            // learn it and remember !!!!
+                    width: area.width/xDim
+                    height: area.height/yDim
+                    color: "darkcyan"
+                    border {color: "black"; width: element.width/20}
+                    clip: true
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "" + mainW.listRnd[index]
+                    }
+                }
             }
         }
-
-
-        /*
+    /*
         Timer {
-            interval: 2500
-            repeat: true
+            interval: 1
+            repeat: false
             running: true
             onTriggered: {
 
             }
-        }*/
+        }
+    */
+
+    }
 
 
 
