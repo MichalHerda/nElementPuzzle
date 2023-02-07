@@ -10,9 +10,9 @@ ApplicationWindow {
     title: qsTr("nElementPuzzle")
     color: "blue"
 
-    property int xDim: 7                                               // puzzle dimensions
-    property int yDim: 7
-    property int elemNo: (xDim * yDim) - 1                              // number of puzzle elements
+    property int pDim: 4                                                // puzzle dimension
+    //property int yDim: 7
+    property int elemNo: pDim * pDim                                    // number of puzzle elements including 0 (empty element)
 
     property variant listVal: []                                        // array of elements:  before draw
     property variant listRnd: []                                        //                     after draw
@@ -22,7 +22,7 @@ ApplicationWindow {
 
     function listValFill() {                                            // fill array by elements
         listVal = []
-        for(let i = 1; i <= elemNo; i++) {                              // here: int 'i' loop are array elements (values)
+        for(let i = 0; i <= elemNo; i++) {                              // here: int 'i' loop are array elements (values)
             listVal.push(i);
         }
     }
@@ -30,15 +30,17 @@ ApplicationWindow {
     function listRndFill() {                                            // draw
         listRnd = []
         let listValDecrease = elemNo
-        for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array index
+        for(let i = 0; i <= elemNo; i++) {                              // here: int 'i' loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease )
             //console.log("rnd:  ",rnd)
-            listRnd[i] = listVal[rnd]
-            listVal.splice(rnd,1)
+            listRnd[i] = listVal[rnd]                                   // 0 (zero) means empty element, which can be drop area for
+            listVal.splice(rnd,1)                                       // neighbour element
             listValDecrease --
             //console.log("arr1: ",listVal[0])
-        }
+        }    
     }
+
+    Component.onCompleted: { listValFill(); listRndFill(); listRndChanged() }
 
     Button {
         id: button
@@ -61,11 +63,13 @@ ApplicationWindow {
                 }
             }
 
+
         onClicked: {
             listValFill()
             console.log("listVal: ",listVal)
             listRndFill()
             console.log("listRnd: ",listRnd)
+            elemRep.checkZero
             listRndChanged()
         }
     }
@@ -75,44 +79,56 @@ ApplicationWindow {
             height: mainW.height
             anchors.left: parent.left
             color: "darkblue"
-            /*
+
+/*
             function arrDisplay() {
                 for(let i = 0; i < elemNo; i++) {
                     console.log("no ",i,"= ",listRnd[i])
                 }
             }
-            */
+*/
             Repeater {
+                id: elemRep
                 model: elemNo
                 delegate: Rectangle {
                     id: element
-                    x: (index % mainW.xDim) * area.width/xDim                   // important MATHEMATICAL FORMULA
-                    y:  Math.floor(index / yDim) * area. height/yDim            // learn it and remember !!!!
-                    width: area.width/xDim
-                    height: area.height/yDim
+                    x: (index % mainW.pDim) * area.width/pDim                   // important MATHEMATICAL FORMULA
+                    y:  Math.floor(index / pDim) * area. height/pDim            // learn it and remember !!!!
+                    width: area.width/pDim
+                    height: area.height/pDim
                     color: "darkcyan"
                     border {color: "black"; width: element.width/20}
                     clip: true
 
+                    property int elemVal:  mainW.listRnd[index]
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+                    function checkZero() {
+                        for(let i = 0; i < mainW.elemNo; i++) {                        // needs to work
+                            if(mainW.listRnd[i] === 0)
+                                elemRep.removeItem(i)
+                        }
+                    }
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
                     Text {
                         anchors.centerIn: parent
-                        text: "" + mainW.listRnd[index]
+                        text: "" + elemVal
                     }
                 }
             }
         }
-    /*
+/*
         Timer {
             interval: 1
             repeat: false
             running: true
             onTriggered: {
-
+                area.arrDisplay()
             }
         }
-    */
-
-    }
+*/
+}
 
 
 
