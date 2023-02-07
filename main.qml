@@ -9,9 +9,10 @@ ApplicationWindow {
     visible: true
     title: qsTr("nElementPuzzle")
     color: "blue"
-
-    property int pDim: 4                                                // puzzle dimension
-    //property int yDim: 7
+//-------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------GLOBAL VARIABLES AND FUNCTIONS--------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
+    property int pDim: 5                                               // puzzle dimension
     property int elemNo: pDim * pDim                                    // number of puzzle elements including 0 (empty element)
 
     property variant listVal: []                                        // array of elements:  before draw
@@ -31,17 +32,17 @@ ApplicationWindow {
         listRnd = []
         let listValDecrease = elemNo
         for(let i = 0; i <= elemNo; i++) {                              // here: int 'i' loop are array index
-            let rnd = Math.floor(Math.random() * listValDecrease )
+            let rnd = Math.floor(Math.random() * listValDecrease)
             //console.log("rnd:  ",rnd)
             listRnd[i] = listVal[rnd]                                   // 0 (zero) means empty element, which can be drop area for
             listVal.splice(rnd,1)                                       // neighbour element
             listValDecrease --
             //console.log("arr1: ",listVal[0])
-        }    
+        }
     }
-
-    Component.onCompleted: { listValFill(); listRndFill(); listRndChanged() }
-
+//-------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------USER SETTINGS----------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
     Button {
         id: button
         width: mainW.width/3
@@ -62,17 +63,17 @@ ApplicationWindow {
                       id: inputHandler
                 }
             }
-
-
         onClicked: {
             listValFill()
-            console.log("listVal: ",listVal)
             listRndFill()
-            console.log("listRnd: ",listRnd)
-            elemRep.checkZero
             listRndChanged()
+
+            elemRep.update()
         }
     }
+//-------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------GAME AREA-------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------
         Rectangle {
             id: area
             width: mainW.width/1.5
@@ -80,13 +81,6 @@ ApplicationWindow {
             anchors.left: parent.left
             color: "darkblue"
 
-/*
-            function arrDisplay() {
-                for(let i = 0; i < elemNo; i++) {
-                    console.log("no ",i,"= ",listRnd[i])
-                }
-            }
-*/
             Repeater {
                 id: elemRep
                 model: elemNo
@@ -96,38 +90,37 @@ ApplicationWindow {
                     y:  Math.floor(index / pDim) * area. height/pDim            // learn it and remember !!!!
                     width: area.width/pDim
                     height: area.height/pDim
-                    color: "darkcyan"
+                    property int elemVal:  mainW.listRnd[index]
+                    color: (mainW.listRnd[index] === 0) ? "black" : "darkcyan"
                     border {color: "black"; width: element.width/20}
                     clip: true
 
-                    property int elemVal:  mainW.listRnd[index]
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-                    function checkZero() {
-                        for(let i = 0; i < mainW.elemNo; i++) {                        // needs to work
-                            if(mainW.listRnd[i] === 0)
-                                elemRep.removeItem(i)
-                        }
-                    }
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
                     Text {
                         anchors.centerIn: parent
-                        text: "" + elemVal
+                        text: "" + mainW.listRnd[index]                         //listRnd[index]
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            console.log("clicked")
+                            if( mainW.listRnd[index] === 0) parent.color = 'black'
+                                else
+                                  parent.color = 'darksalmon'
+                        }
+
+                        onReleased: {
+                            console.log("released")
+                            if( mainW.listRnd[index] === 0) parent.color = 'black'
+                                else
+                                  parent.color = 'darkcyan'
+
+                        }
                     }
                 }
             }
         }
-/*
-        Timer {
-            interval: 1
-            repeat: false
-            running: true
-            onTriggered: {
-                area.arrDisplay()
-            }
-        }
-*/
+    Component.onCompleted: { listValFill(); listRndFill(); listRndChanged(); }
 }
 
 
