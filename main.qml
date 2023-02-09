@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.5
-
+//---------------------------------------------------------------------------------------------------------------------------------------------
 ApplicationWindow {
     id: mainW
     width: 640
@@ -9,11 +9,11 @@ ApplicationWindow {
     visible: true
     title: qsTr("nElementPuzzle")
     color: "blue"
-//-------------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------GLOBAL VARIABLES AND FUNCTIONS--------------------------------------------------
-//-------------------------------------------------------------------------------------------------------------------------------
-    property int pDim: 4                                                // puzzle dimension
-    property int elemNo: pDim * pDim                                    // number of puzzle elements including 0 (empty element)
+//----------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------GLOBAL VARIABLES AND FUNCTIONS-----------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------
+    property int pDim: 5                                                // puzzle dimension
+    property int elemNo: Math.pow (pDim,2)                              // number of puzzle elements including 0 (empty element)
 
     property variant listVal: []                                        // array of elements:  before draw
     property variant listRnd: []                                        //                     after draw
@@ -24,39 +24,103 @@ ApplicationWindow {
     property color tileColor: "darkcyan"
     property color tileColorPressed: "darksalmon"
     property color tileColorEmpty: "black"
-
-    function listValFill() {                                            // fill array by elements
+//----------------------------------------------------------------------------------------------------------------------------------------------
+    function listValFill() {                                            // fill array by elements, range 0 - elemNo
         listVal = []
         for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array elements (values)
             listVal.push(i);
         }
     }
+//----------------------------------------------------------------------------------------------------------------------------------------------
     function listRndFill() {                                            // draw
         listRnd = []
         let listValDecrease = elemNo
         for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease)
-            //console.log("rnd:  ",rnd)
             listRnd[i] = listVal[rnd]                                   // 0 (zero) means empty element, which can be drop area for
             listVal.splice(rnd,1)                                       // neighbour element
             listValDecrease --
             colorSet()
-            //console.log("arr1: ",listVal[0])
         }
     }
+//----------------------------------------------------------------------------------------------------------------------------------------------
     function colorSet () {
-        for (let i = 0; i < elemNo; i++) {                              // function colorSet is required to refresh colors
-            var rect = elemRep.itemAt(i)                                // after listRnd and listVal drawing
-            //console.log("item color is ", rect.color)
-
+        for (let i = 0; i < elemNo; i++) {                                          // function colorSet is required to refresh colors
+            var rect = elemRep.itemAt(i)                                            // after listRnd and listVal drawing            
             if(listRnd[i] === 0) {rect.color = tileColorEmpty; rect.opacity = 0 }
-                            else
+                                else
                                  {rect.color = tileColor; rect.opacity = 1 }
         }
     }
-//-------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------USER SETTINGS----------------------------------------------------------
-//-------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------
+    function controlLogic (index, drag) {
+
+        let allowedTarget = null
+
+        let columnFirst = false                                                     // clicked item position
+        let columnLast = false                                                      // definition
+        let rowFirst = false
+        let rowLast = false
+        let boardMiddle = false
+
+        if ( (index % pDim )    === 0 )     { columnFirst = true; console.log("column first") }   // clicked item position
+        if ( (index + 1) % pDim === 0 )     { columnLast = true; console.log("column last") }     // checking
+        if ( index <= (pDim - 1) )          { rowFirst = true; console.log("row first") }
+        if ( index > (elemNo - pDim - 1) ) { rowLast = true; console.log("row last") }
+        if ( !columnFirst && !columnLast && !rowFirst && !rowLast)
+                                            { boardMiddle = true; console.log("board middle") }
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------CHECKING IF CLICKED ITEM MOVE IS AVAILABLE------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+        if ( ( columnFirst && rowFirst ) && (listRnd[index + 1] === 0 || listRnd[index + pDim] === 0 ) ) {
+             drag.target = elemRep.itemAt(index)
+            }
+        if ( ( columnFirst && rowLast) && (listRnd[index + 1] === 0 || listRnd[index - pDim] === 0 ) ) {
+            drag.target = elemRep.itemAt(index)
+            }
+        if ( ( columnLast && rowFirst) && (listRnd[index - 1] === 0 || listRnd[index + pDim] === 0 ) ) {
+                drag.target = elemRep.itemAt(index)
+            }
+        if ( ( columnLast && rowLast) && (listRnd[index - 1] === 0 || listRnd[index - pDim] === 0 ) ) {
+                drag.target = elemRep.itemAt(index)
+            }
+        if ( ( columnFirst && !rowFirst && !rowLast ) && ( listRnd[index + 1] === 0 || listRnd[index + pDim] === 0  || listRnd[index - pDim] === 0) ) {
+             drag.target = elemRep.itemAt(index)
+            }
+        if ( ( columnLast && !rowFirst && !rowLast ) && ( listRnd[index - 1] === 0 || listRnd[index + pDim] === 0  || listRnd[index - pDim] === 0) ) {
+             drag.target = elemRep.itemAt(index)
+            }
+        if ( ( rowFirst && !columnFirst && !columnLast) && ( listRnd[index - 1] === 0 || listRnd[index + 1] === 0  || listRnd[index + pDim] === 0) ) {
+              drag.target = elemRep.itemAt(index)
+            }
+        if ( ( rowLast && !columnFirst && !columnLast) && ( listRnd[index - 1] === 0 || listRnd[index + 1] === 0  || listRnd[index - pDim] === 0) ) {
+              drag.target = elemRep.itemAt(index)
+            }
+        if ( ( boardMiddle) && ( listRnd [index - 1] === 0 || listRnd [index + 1] === 0
+                                || listRnd [index + pDim] === 0 || listRnd [index - pDim] === 0) ) {
+               drag.target = elemRep.itemAt(index)
+            }
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+        /*
+        if(listRnd[index] !== 0) {
+           if ( (index % pDim === 0) && (listRnd[index + 1] === 0) )
+                drag.target = elemRep.itemAt(index)
+           if ( ( (index + 1) % pDim === 0 ) && (listRnd[index - 1] === 0 ) )
+                drag.target = elemRep.itemAt(index)
+           if ( ( index <= (pDim - 1) ) && (listRnd[index + pDim] === 0 ) )
+                drag.target = elemRep.itemAt(index)
+           if ( (index >= (elemNo - pDim - 1) ) && (listRnd[index - pDim] === 0))
+                drag.target = elemRep.itemAt(index)
+           if ( (index % pDim !== 0) && ( (index + 1) % pDim !== 0 ) && ( index > (pDim - 1)) && (index < (elemNo - pDim - 1) )
+                 && ( (listRnd[index + 1] === 0) || (listRnd[index - 1] === 0 ) || (listRnd[index - pDim] === 0)
+                     || (listRnd[index - pDim] === 0) ) )
+                 drag.target = elemRep.itemAt(index)
+        }
+        */
+    }
+//--------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------USER SETTINGS-----------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------
     Button {
         id: button
         width: mainW.width/3
@@ -85,9 +149,9 @@ ApplicationWindow {
 
         }
     }
-//-------------------------------------------------------------------------------------------------------------------------------
-//---------------------------------------------------------GAME AREA-------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------GAME AREA--------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------
         Rectangle {
             id: area
             width: mainW.width/1.5
@@ -114,21 +178,9 @@ ApplicationWindow {
                         onPressed: {                           
                             if(listRnd[index] === 0) parent.color = tileColorEmpty
                                 else
-                                  parent.color = tileColorPressed                           
-                            if(listRnd[index] !== 0) {
-                               if ( (index % pDim === 0) && (listRnd[index + 1] === 0) )
-                                    drag.target = elemRep.itemAt(index)
-                               if ( ( (index + 1) % pDim === 0 ) && (listRnd[index - 1] === 0 ) )
-                                    drag.target = elemRep.itemAt(index)
-                               if ( ( index <= (pDim - 1) ) && (listRnd[index + pDim] === 0 ) )
-                                    drag.target = elemRep.itemAt(index)
-                               if ( (index >= (elemNo - pDim - 1) ) && (listRnd[index - pDim] === 0))
-                                    drag.target = elemRep.itemAt(index)
-                               if ( (index % pDim !== 0) && ( (index + 1) % pDim !== 0 ) && ( index > (pDim - 1)) && (index < (elemNo - pDim - 1) )
-                                     && ( (listRnd[index + 1] === 0) || (listRnd[index - 1] === 0 ) || (listRnd[index - pDim] === 0)
-                                         || (listRnd[index - pDim] === 0) ) )
-                                     drag.target = elemRep.itemAt(index)
-                            }
+                                  parent.color = tileColorPressed
+                            controlLogic(index,drag)
+
                         }
 
                         onReleased: {
