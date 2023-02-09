@@ -12,7 +12,7 @@ ApplicationWindow {
 //-------------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------GLOBAL VARIABLES AND FUNCTIONS--------------------------------------------------
 //-------------------------------------------------------------------------------------------------------------------------------
-    property int pDim: 5                                                // puzzle dimension
+    property int pDim: 4                                                // puzzle dimension
     property int elemNo: pDim * pDim                                    // number of puzzle elements including 0 (empty element)
 
     property variant listVal: []                                        // array of elements:  before draw
@@ -27,14 +27,14 @@ ApplicationWindow {
 
     function listValFill() {                                            // fill array by elements
         listVal = []
-        for(let i = 0; i < elemNo; i++) {                              // here: int 'i' loop are array elements (values)
+        for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array elements (values)
             listVal.push(i);
         }
     }
     function listRndFill() {                                            // draw
         listRnd = []
         let listValDecrease = elemNo
-        for(let i = 0; i < elemNo; i++) {                              // here: int 'i' loop are array index
+        for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease)
             //console.log("rnd:  ",rnd)
             listRnd[i] = listVal[rnd]                                   // 0 (zero) means empty element, which can be drop area for
@@ -47,11 +47,11 @@ ApplicationWindow {
     function colorSet () {
         for (let i = 0; i < elemNo; i++) {                              // function colorSet is required to refresh colors
             var rect = elemRep.itemAt(i)                                // after listRnd and listVal drawing
-            console.log("item color is ", rect.color)
+            //console.log("item color is ", rect.color)
 
-            if(listRnd[i] === 0) rect.color = tileColorEmpty
-                else
-                    rect.color = tileColor
+            if(listRnd[i] === 0) {rect.color = tileColorEmpty; rect.opacity = 0 }
+                            else
+                                 {rect.color = tileColor; rect.opacity = 1 }
         }
     }
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -64,12 +64,12 @@ ApplicationWindow {
         anchors.right: parent.right
 
         background: Rectangle {
-               color: inputHandler.pressed ? "darkgoldenrod" : "royalblue"
+               color: inputHandler.pressed ? "darkgoldenrod" : "midnightblue"
                border {color: inputHandler.pressed ? "red" : "cadetblue"; width: button.width/40}
 
                Text {
                      anchors.centerIn: parent
-                     color: inputHandler.pressed ? "maroon" : "darkblue"
+                     color: inputHandler.pressed ? "maroon" : "aqua"
                      text: "Generate"
                 }
 
@@ -81,7 +81,6 @@ ApplicationWindow {
             listValFill()
             listRndFill()
             listRndChanged()
-
             //console.log(mainW.listRnd)
 
         }
@@ -94,7 +93,8 @@ ApplicationWindow {
             width: mainW.width/1.5
             height: mainW.height
             anchors.left: parent.left
-            color: "darkblue"
+            color: tileColorEmpty
+            clip: true
 
             Repeater {
                 id: elemRep
@@ -105,31 +105,35 @@ ApplicationWindow {
                     y:  Math.floor(index / pDim) * area. height/pDim            // learn it and remember !!!!
                     width: area.width/pDim
                     height: area.height/pDim
-                    property int elemVal: listRnd[index]
-
-                    function display() {
-                        console.log("listRnd:", listRnd)
-                    }
-
-                    Component.onCompleted: display(index)
-
-                    color: (element.elemVal === 0) ? "black" : tileColor//"darkcyan"
-                    border {color: "black"; width: element.width/20}
+                    border {color: tileColorEmpty; width: element.width/20}
                     clip: true
 
                     MouseArea {
                         anchors.fill: parent
 
-                        onPressed: {
-                            //console.log("Idx ",index," clicked. Value: ",mainW.listRnd[index]," elemVal: ", elemVal)
-                            if( mainW.listRnd[index] === 0) parent.color = tileColorEmpty
+                        onPressed: {                           
+                            if(listRnd[index] === 0) parent.color = tileColorEmpty
                                 else
-                                  parent.color = tileColorPressed
+                                  parent.color = tileColorPressed                           
+                            if(listRnd[index] !== 0) {
+                               if ( (index % pDim === 0) && (listRnd[index + 1] === 0) )
+                                    drag.target = elemRep.itemAt(index)
+                               if ( ( (index + 1) % pDim === 0 ) && (listRnd[index - 1] === 0 ) )
+                                    drag.target = elemRep.itemAt(index)
+                               if ( ( index <= (pDim - 1) ) && (listRnd[index + pDim] === 0 ) )
+                                    drag.target = elemRep.itemAt(index)
+                               if ( (index >= (elemNo - pDim - 1) ) && (listRnd[index - pDim] === 0))
+                                    drag.target = elemRep.itemAt(index)
+                               if ( (index % pDim !== 0) && ( (index + 1) % pDim !== 0 ) && ( index > (pDim - 1)) && (index < (elemNo - pDim - 1) )
+                                     && ( (listRnd[index + 1] === 0) || (listRnd[index - 1] === 0 ) || (listRnd[index - pDim] === 0)
+                                         || (listRnd[index - pDim] === 0) ) )
+                                     drag.target = elemRep.itemAt(index)
+                            }
                         }
 
                         onReleased: {
-                            //console.log("Idx ",index," released. ", mainW.listRnd[index]," elemVal: ", elemVal )
-                            if( mainW.listRnd[index] === 0) parent.color = tileColorEmpty
+                            console.log("Idx ",index," released. ", mainW.listRnd[index])
+                            if(listRnd[index] === 0) parent.color = tileColorEmpty
                                 else
                                   parent.color = tileColor
                         }
