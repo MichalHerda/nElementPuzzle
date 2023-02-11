@@ -17,6 +17,8 @@ ApplicationWindow {
 
     property variant listVal: []                                        // array of elements:  before draw
     property variant listRnd: []                                        //                     after draw
+    property variant listCoX: []                                        // array of static X coordinates for each array elements (front-end purposes)
+    property variant listCoY: []                                        // array of static Y coordinates for each array elements (front-end purposes)
 
     property bool empty
     property bool gameOver
@@ -26,14 +28,14 @@ ApplicationWindow {
     property color tileColorEmpty: "black"
 //--------------------------------------------------------------------------------------------------------------------------------------------------
     function listValFill() {                                            // fill array by elements, range 0 - elemNo
-        listVal = []
+        listVal = []                                                    // reset
         for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array elements (values)
             listVal.push(i);
         }
     }
 //--------------------------------------------------------------------------------------------------------------------------------------------------
     function listRndFill() {                                            // draw
-        listRnd = []
+        listRnd = []                                                    // reset
         let listValDecrease = elemNo
         for(let i = 0; i < elemNo; i++) {                               // here: int 'i' loop are array index
             let rnd = Math.floor(Math.random() * listValDecrease)
@@ -41,6 +43,20 @@ ApplicationWindow {
             listVal.splice(rnd,1)                                       // neighbour element
             listValDecrease --
             colorSet()
+        }
+    }
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+    function listCoXFill() {
+        listCoX = []                                                    // reset
+        for(let i = 0; i < elemNo; i++) {
+            listCoX.push ( (i % mainW.pDim) * area.width/pDim )         // fill array by each element X coordinates
+        }
+    }
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+    function listCoYFill() {
+        listCoY = []                                                    // reset
+        for(let i = 0; i < elemNo; i++) {
+            listCoY.push (Math.floor(i / pDim) * area. height/pDim)     // fill array by each element Y coordinates
         }
     }
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -57,18 +73,32 @@ ApplicationWindow {
 
         let allowedTarget = null
 
-        let columnFirst = false                                                                       // clicked item position
-        let columnLast = false                                                                        // definition
+        let columnFirst = false                                                                       // check clicked item position
+        let columnLast = false                                                                        // (reset variables each time)
         let rowFirst = false
         let rowLast = false
         let boardMiddle = false
 
-            if ( (index % pDim )    === 0 )     { columnFirst = true; console.log("column first") }   // clicked item position
-            if ( (index + 1) % pDim === 0 )     { columnLast = true; console.log("column last") }     // checking
-            if ( index <= (pDim - 1) )          { rowFirst = true; console.log("row first") }
-            if ( index > (elemNo - pDim - 1) )  { rowLast = true; console.log("row last") }
-            if ( !columnFirst && !columnLast && !rowFirst && !rowLast)
-                                                { boardMiddle = true; console.log("board middle") }
+            if ( (index % pDim )    === 0 )     {                                                     // clicked item position
+                columnFirst = true;                                                                   // checking
+                //console.log("column first")
+            }
+            if ( (index + 1) % pDim === 0 )     {
+                columnLast = true;
+                //console.log("column last")
+            }
+            if ( index <= (pDim - 1) )          {
+                rowFirst = true;
+                //console.log("row first")
+            }
+            if ( index > (elemNo - pDim - 1) )  {
+                rowLast = true;
+                //console.log("row last")
+            }
+            if ( !columnFirst && !columnLast && !rowFirst && !rowLast) {
+                boardMiddle = true;
+                //console.log("board middle")
+            }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //---------------------------------------------CHECKING IF CLICKED ITEM MOVE IS AVAILABLE------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -104,7 +134,7 @@ ApplicationWindow {
 //---------------------------------------------------------------------------------------------------------------------------------------------------
     function specifyMoveRange(index, drag) {
 
-        let currentElement = elemRep.itemAt(index)              // the purpose of this function is to specify
+        let currentElement = elemRep.itemAt(index)              //  function to specify
                                                                 //  the range of movement for individual elements of the board
         let itemOnRight = null
         let itemOnLeft = null
@@ -113,63 +143,118 @@ ApplicationWindow {
 
         drag.target = currentElement
 
-        if (listRnd [index + 1] === 0) {
+        if (listRnd [index + 1] === 0) {                        // when empty place on right side
             drag.axis = Drag.XAxis
-            itemOnRight = elemRep.itemAt(index + 1)
-            drag.maximumX = itemOnRight.x
-            drag.minimumX = currentElement.x
+            //itemOnRight = elemRep.itemAt(index + 1)
+            drag.maximumX = listCoX[ index + 1]                                                      //itemOnRight.x
+            drag.minimumX = listCoX[ index]                                                        //currentElement.x
         }
-        if (listRnd [index - 1] === 0) {
+        if (listRnd [index - 1] === 0) {                        // when empty place on left side
             drag.axis = Drag.XAxis
-            itemOnLeft = elemRep.itemAt(index - 1)
-            drag.maximumX = currentElement.x
-            drag.minimumX = itemOnLeft.x
+            //itemOnLeft = elemRep.itemAt(index - 1)
+            drag.maximumX = listCoX[ index]                                                          //currentElement.x
+            drag.minimumX = listCoX[ index - 1]                                                     //itemOnLeft.x
         }
-        if (listRnd [index + pDim] === 0) {
+        if (listRnd [index + pDim] === 0) {                     // when empty place on lower row
             drag.axis = Drag.YAxis
-            itemOnBottom = elemRep.itemAt(index + pDim)
-            drag.maximumY = itemOnBottom.y
-            drag.minimumY = currentElement.y
+            //itemOnBottom = elemRep.itemAt(index + pDim)
+            drag.maximumY = listCoY [index + pDim]                                                  //itemOnBottom.y
+            drag.minimumY = listCoY [index]                                                         //currentElement.y
         }
-        if (listRnd [index - pDim] === 0) {
+        if (listRnd [index - pDim] === 0) {                     // when empty place on upper row
             drag.axis = Drag.YAxis
-            itemOnTop = elemRep.itemAt(index - pDim)
-            drag.maximumY = currentElement.y
-            drag.minimumY = itemOnTop.y
+            //itemOnTop = elemRep.itemAt(index - pDim)
+            drag.maximumY = listCoY [index]                                                        //currentElement.y
+            drag.minimumY = listCoY [index - pDim]                                                  //itemOnTop.y
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-    function elementsExchange(index) {
+    function elementsExchange(index,listRnd,listCoX,listCoY) {
 
-        console.log("iteration elements, searching for exchange")
-        let droppedElement = elemRep.itemAt(index)
+        let droppedElement  = elemRep.itemAt(index)
+        let droppedElementX = listCoX[index]
+        let droppedElementY = listCoY[index]
+
+        console.log("dropX: ",droppedElementX)
+        console.log("dropY: ",droppedElementY)
+
+        let comparedElement  = null
+        let comparedElementX = null
+        let comparedElementY = null
+
         let bufor = null
-        let comparedElement = null
+
+        //console.log("index :                ", index)
+        //console.log("dropped element :      ", droppedElement)
+        //console.log("dropped element ... x: ", droppedElement.x," y: ",droppedElement.y)
+        //console.log("bufor :                ", bufor)
+        //console.log("compared element :     ", comparedElement)
+        //here is okay
+
+        displayCoordinates()
 
             for (let i = 0; i < elemNo; i++) {
-                if ( i !== index) {
-                    console.log("iteration works")
-                    comparedElement = elemRep.itemAt(i)
+                console.log("index : ", index)
+                console.log("iter  : ", i )
+
+                    //console.log("i !== index")
+                    //console.log("iteration elements, searching for exchange")
+                    //console.log("iteration works: ", elemRep.itemAt(i))
+
+                    comparedElement  = elemRep.itemAt(i)
+                    comparedElementX = listCoX[i]
+                    comparedElementY = listCoY[i]
+
+                    console.log("compX: ",comparedElementX)
+                    console.log("compY: ",comparedElementY)
+
+                    //console.log("dropped  element x: ", droppedElement.x," y: ",droppedElement.y)
+                    //console.log("compared element x: ", comparedElement.x," y: ",comparedElement.y)
 
                         if( (droppedElement.x === comparedElement.x) && (droppedElement.y === comparedElement.y) ) {
-                            console.log("the same coordinates of two elements")
-                            bufor = droppedElement
-                            droppedElement = comparedElement
-                            comparedElement = bufor
-                            bufor = 0
 
+                            console.log("the same coordinates of two elements")
+
+                            //bufor = comparedElementX
+                            droppedElement.x = comparedElementX
+                            comparedElement.x = droppedElementX
+
+                            //bufor = 0
+
+                            //bufor = comparedElementY
+                            droppedElement.y = comparedElementY
+                            comparedElement.y = droppedElementY
+
+                            //comparedElement.opacity = 0
+                            //droppedElement.opacity = 1
+
+                            //bufor = 0
+                                console.log("listRnd index before re-writting: ", listRnd [i])
+                                console.log("listRnd iterr before re-writting: ", listRnd [index])
+                            //
                                 bufor = listRnd [index]
                                 listRnd[index] = listRnd[i]
                                 listRnd[i] = bufor
-                                break
-                        }
-                }
+                            //
+                                console.log("listRnd index after re-writting: ", listRnd [i])
+                                console.log("listRnd iterr after re-writting: ", listRnd [index])
+
+                                console.log(listRnd)
+                                //break
+
+                                //listCoXFill()
+                                //listCoYFill()
+                        }                
+
             }
-
-
-
     }
-
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+    function displayCoordinates() {
+        for (let i = 0; i < elemNo; i++ ) {
+            let currentItem = elemRep.itemAt(i)
+            console.log("Element ",i," - x: ",currentItem.x,", y: ",currentItem.y)
+        }
+    }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------USER INTERFACE SETTINGS---------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -196,9 +281,7 @@ ApplicationWindow {
         onClicked: {
             listValFill()
             listRndFill()
-            listRndChanged()
-            //console.log(mainW.listRnd)
-
+            listRndChanged()            
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -217,8 +300,9 @@ ApplicationWindow {
                 model: elemNo
                 delegate: Rectangle {
                     id: element
-                    x: (index % mainW.pDim) * area.width/pDim                   // important MATHEMATICAL FORMULA
-                    y:  Math.floor(index / pDim) * area. height/pDim            // learn it and remember !!!!
+                    x: (index % mainW.pDim) * area.width/pDim                                // important MATHEMATICAL FORMULA
+                    y:  Math.floor (index / pDim) * area. height/pDim                        // learn it and remember !!!!
+                    //z: listRnd[index] === 0 ? -1 : 0
                     width: area.width/pDim
                     height: area.height/pDim
                     border {color: tileColorEmpty; width: element.width/20}
@@ -229,12 +313,15 @@ ApplicationWindow {
                         anchors.fill: parent
 
                         onPressed: {                           
-                            if(listRnd[index] === 0) parent.color = tileColorEmpty
+                            if(listRnd[index] === 0) {parent.color = tileColorEmpty; console.log("pressed")}
                                 else
-                                  parent.color = tileColorPressed
+                                  { parent.color = tileColorPressed; console.log("pressed"); }
                             controlLogic(index,drag)
-                            let checkCoord = elemRep.itemAt(index)
-                            console.log("coordinates: ", checkCoord.x," ",checkCoord.y)
+                            //let checkCoord = elemRep.itemAt(index)
+                            //console.log("coordinates: ", checkCoord.x," ",checkCoord.y)
+                            //displayCoordinates()
+                            console.log(listCoX)
+                            console.log(listCoY)
                         }
 
                         onReleased: {
@@ -242,9 +329,9 @@ ApplicationWindow {
                             if(listRnd[index] === 0) {parent.color = tileColorEmpty}
                                                     else
                                                      {parent.color = tileColor}
-                            let checkCoord = elemRep.itemAt(index)
-                            console.log("coordinates: ", checkCoord.x," ",checkCoord.y)
-                            elementsExchange(index)
+
+                            //displayCoordinates()
+                            elementsExchange(index,listRnd,listCoX,listCoY)
                         }
                     }
 /*
@@ -262,11 +349,21 @@ ApplicationWindow {
                     Text {
                         anchors.centerIn: parent
                         text: "" + mainW.listRnd[index]                         //listRnd[index]
+                        font.bold: true
+                        font.pixelSize: area.width/15
                     }
                 }
             }
         }
-    Component.onCompleted: { listValFill(); listRndFill(); listRndChanged(); colorSet()}
+    Component.onCompleted: {
+        listValFill();
+        listRndFill();
+        listRndChanged();
+        colorSet();
+        listCoXFill();
+        listCoYFill();
+        //elementsExchange()
+    }
 }
 
 
