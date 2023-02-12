@@ -1,4 +1,4 @@
-import QtQuick 2.15
+﻿import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.5
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ ApplicationWindow {
             listRnd[i] = listVal[rnd]                                   // 0 (zero) means empty element, which can be drop area for
             listVal.splice(rnd,1)                                       // neighbour element
             listValDecrease --
-            colorSet()
+            colorSet()           
         }
     }
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -169,84 +169,24 @@ ApplicationWindow {
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-    function elementsExchange(index,listRnd,listCoX,listCoY) {
+   function searchDoubledCoordinates(index,elemRep) {
+        let droppedElement = elemRep.itemAt(index)
+        let comparedElement
+            console.log("dropped element  x: ", droppedElement.x,"   y: ", droppedElement.y)
 
-        let droppedElement  = elemRep.itemAt(index)
-        let droppedElementX = listCoX[index]
-        let droppedElementY = listCoY[index]
+        for (let i = 0; i < elemNo; i ++ ) {
+           comparedElement = elemRep.itemAt(i)
+           console.log("compared element x: ", comparedElement.x,"   y: ", comparedElement.y)
 
-        console.log("dropX: ",droppedElementX)
-        console.log("dropY: ",droppedElementY)
+           if( (droppedElement.x === comparedElement.x) && (droppedElement.y === comparedElement.y) && ( i !== index) ) {
+               return i
+           }
+           else return false
+        }
+    }
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+    function elementsSwap(index,doubledCoo) {
 
-        let comparedElement  = null
-        let comparedElementX = null
-        let comparedElementY = null
-
-        let bufor = null
-
-        //console.log("index :                ", index)
-        //console.log("dropped element :      ", droppedElement)
-        //console.log("dropped element ... x: ", droppedElement.x," y: ",droppedElement.y)
-        //console.log("bufor :                ", bufor)
-        //console.log("compared element :     ", comparedElement)
-        //here is okay
-
-        displayCoordinates()
-
-            for (let i = 0; i < elemNo; i++) {
-                console.log("index : ", index)
-                console.log("iter  : ", i )
-
-                    //console.log("i !== index")
-                    //console.log("iteration elements, searching for exchange")
-                    //console.log("iteration works: ", elemRep.itemAt(i))
-
-                    comparedElement  = elemRep.itemAt(i)
-                    comparedElementX = listCoX[i]
-                    comparedElementY = listCoY[i]
-
-                    console.log("compX: ",comparedElementX)
-                    console.log("compY: ",comparedElementY)
-
-                    //console.log("dropped  element x: ", droppedElement.x," y: ",droppedElement.y)
-                    //console.log("compared element x: ", comparedElement.x," y: ",comparedElement.y)
-
-                        if( (droppedElement.x === comparedElement.x) && (droppedElement.y === comparedElement.y) ) {
-
-                            console.log("the same coordinates of two elements")
-
-                            //bufor = comparedElementX
-                            droppedElement.x = comparedElementX
-                            comparedElement.x = droppedElementX
-
-                            //bufor = 0
-
-                            //bufor = comparedElementY
-                            droppedElement.y = comparedElementY
-                            comparedElement.y = droppedElementY
-
-                            //comparedElement.opacity = 0
-                            //droppedElement.opacity = 1
-
-                            //bufor = 0
-                                console.log("listRnd index before re-writting: ", listRnd [i])
-                                console.log("listRnd iterr before re-writting: ", listRnd [index])
-                            //
-                                bufor = listRnd [index]
-                                listRnd[index] = listRnd[i]
-                                listRnd[i] = bufor
-                            //
-                                console.log("listRnd index after re-writting: ", listRnd [i])
-                                console.log("listRnd iterr after re-writting: ", listRnd [index])
-
-                                console.log(listRnd)
-                                //break
-
-                                //listCoXFill()
-                                //listCoYFill()
-                        }                
-
-            }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
     function displayCoordinates() {
@@ -302,7 +242,6 @@ ApplicationWindow {
                     id: element
                     x: (index % mainW.pDim) * area.width/pDim                                // important MATHEMATICAL FORMULA
                     y:  Math.floor (index / pDim) * area. height/pDim                        // learn it and remember !!!!
-                    //z: listRnd[index] === 0 ? -1 : 0
                     width: area.width/pDim
                     height: area.height/pDim
                     border {color: tileColorEmpty; width: element.width/20}
@@ -316,12 +255,10 @@ ApplicationWindow {
                             if(listRnd[index] === 0) {parent.color = tileColorEmpty; console.log("pressed")}
                                 else
                                   { parent.color = tileColorPressed; console.log("pressed"); }
-                            controlLogic(index,drag)
-                            //let checkCoord = elemRep.itemAt(index)
-                            //console.log("coordinates: ", checkCoord.x," ",checkCoord.y)
+                            controlLogic(index,drag)                           
                             //displayCoordinates()
-                            console.log(listCoX)
-                            console.log(listCoY)
+                            //console.log(listCoX)
+                            //console.log(listCoY)
                         }
 
                         onReleased: {
@@ -331,24 +268,23 @@ ApplicationWindow {
                                                      {parent.color = tileColor}
 
                             //displayCoordinates()
-                            elementsExchange(index,listRnd,listCoX,listCoY)
+                            var doubledCoo = searchDoubledCoordinates(index,elemRep)
+                            console.log("Doubled coordinates in : ",doubledCoo)
+                            if(doubledCoo !== false ) {
+                                elemRep.itemAt(index).x= listCoX[doubledCoo]
+                                elemRep.itemAt(index).y = listCoY[doubledCoo]
+                                elemRep.itemAt(doubledCoo).x = listCoX[index]
+                                elemRep.itemAt(doubledCoo).y = listCoY[index]
+                                var temporary = listRnd[index]
+                                listRnd[index] = listRnd[doubledCoo]
+                                listRnd[doubledCoo] = temporary
+                            }
                         }
                     }
-/*
-                    DropArea {
-                        id: dropArea
-                        anchors.fill: parent
-                        enabled: listRnd [index] === 0 ? true : false
 
-                        onDropped: {
-                            console.log("Dropped")
-                        }
-
-                    }
-*/
                     Text {
                         anchors.centerIn: parent
-                        text: "" + mainW.listRnd[index]                         //listRnd[index]
+                        text: "" + mainW.listRnd[index]
                         font.bold: true
                         font.pixelSize: area.width/15
                     }
@@ -362,7 +298,6 @@ ApplicationWindow {
         colorSet();
         listCoXFill();
         listCoYFill();
-        //elementsExchange()
     }
 }
 
