@@ -1,4 +1,4 @@
-﻿import QtQuick 2.15
+import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.5
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,8 +71,6 @@ ApplicationWindow {
 //--------------------------------------------------------------------------------------------------------------------------------------------------
     function controlLogic (index, drag) {
 
-        let allowedTarget = null
-
         let columnFirst = false                                                                       // check clicked item position
         let columnLast = false                                                                        // (reset variables each time)
         let rowFirst = false
@@ -81,23 +79,23 @@ ApplicationWindow {
 
             if ( (index % pDim )    === 0 )     {                                                     // clicked item position
                 columnFirst = true;                                                                   // checking
-                //console.log("column first")
+                console.log("column first")
             }
             if ( (index + 1) % pDim === 0 )     {
                 columnLast = true;
-                //console.log("column last")
+                console.log("column last")
             }
             if ( index <= (pDim - 1) )          {
                 rowFirst = true;
-                //console.log("row first")
+                console.log("row first")
             }
             if ( index > (elemNo - pDim - 1) )  {
                 rowLast = true;
-                //console.log("row last")
+                console.log("row last")
             }
             if ( !columnFirst && !columnLast && !rowFirst && !rowLast) {
                 boardMiddle = true;
-                //console.log("board middle")
+                console.log("board middle")
             }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //---------------------------------------------CHECKING IF CLICKED ITEM MOVE IS AVAILABLE------------------------------------------------------------
@@ -145,44 +143,39 @@ ApplicationWindow {
 
         if (listRnd [index + 1] === 0) {                        // when empty place on right side
             drag.axis = Drag.XAxis
-            //itemOnRight = elemRep.itemAt(index + 1)
-            drag.maximumX = listCoX[ index + 1]                                                      //itemOnRight.x
-            drag.minimumX = listCoX[ index]                                                        //currentElement.x
+            drag.maximumX = listCoX[ index + 1]
+            drag.minimumX = listCoX[ index]
         }
         if (listRnd [index - 1] === 0) {                        // when empty place on left side
             drag.axis = Drag.XAxis
-            //itemOnLeft = elemRep.itemAt(index - 1)
-            drag.maximumX = listCoX[ index]                                                          //currentElement.x
-            drag.minimumX = listCoX[ index - 1]                                                     //itemOnLeft.x
+            drag.maximumX = listCoX[ index]
+            drag.minimumX = listCoX[ index - 1]
         }
         if (listRnd [index + pDim] === 0) {                     // when empty place on lower row
-            drag.axis = Drag.YAxis
-            //itemOnBottom = elemRep.itemAt(index + pDim)
-            drag.maximumY = listCoY [index + pDim]                                                  //itemOnBottom.y
-            drag.minimumY = listCoY [index]                                                         //currentElement.y
+            drag.axis = Drag.YAxis            
+            drag.maximumY = listCoY [index + pDim]
+            drag.minimumY = listCoY [index]
         }
         if (listRnd [index - pDim] === 0) {                     // when empty place on upper row
             drag.axis = Drag.YAxis
-            //itemOnTop = elemRep.itemAt(index - pDim)
-            drag.maximumY = listCoY [index]                                                        //currentElement.y
-            drag.minimumY = listCoY [index - pDim]                                                  //itemOnTop.y
+            drag.maximumY = listCoY [index]
+            drag.minimumY = listCoY [index - pDim]
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
    function searchDoubledCoordinates(index,elemRep) {
         let droppedElement = elemRep.itemAt(index)
-        let comparedElement
-            console.log("dropped element  x: ", droppedElement.x,"   y: ", droppedElement.y)
+        let comparedElement = undefined
+            //console.log("dropped element  x: ", droppedElement.x,"   y: ", droppedElement.y)
 
         for (let i = 0; i < elemNo; i ++ ) {
            comparedElement = elemRep.itemAt(i)
-           console.log("compared element x: ", comparedElement.x,"   y: ", comparedElement.y)
+           //console.log("compared element x: ", comparedElement.x,"   y: ", comparedElement.y)
 
-           if( (droppedElement.x === comparedElement.x) && (droppedElement.y === comparedElement.y) && ( i !== index) ) {
-               return i
-           }
-           else return false
+           if( (droppedElement.x === comparedElement.x) && (droppedElement.y === comparedElement.y) && ( i !== index) )
+               return i          
         }
+        return -1
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
     function elementsSwap(index,doubledCoo) {
@@ -194,6 +187,10 @@ ApplicationWindow {
             let currentItem = elemRep.itemAt(i)
             console.log("Element ",i," - x: ",currentItem.x,", y: ",currentItem.y)
         }
+    }
+//---------------------------------------------------------------------------------------------------------------------------------------------------
+    function displaySomethingFunny() {                                                                          //test purposes
+        console.log("*&^*&%**&!$^^#(!)*$$#opjipo@*(&#(!&(^*&^@*&!*&#)@!@#$%^&*()(*&^%$$##!yi^!$!!")
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------USER INTERFACE SETTINGS---------------------------------------------------------------------
@@ -247,46 +244,78 @@ ApplicationWindow {
                     border {color: tileColorEmpty; width: element.width/20}
                     clip: true
 
+                    Text {
+                        id: textElement
+                        anchors.centerIn: parent
+                        text: "" + mainW.listRnd[index]
+                        font.bold: true
+                        font.pixelSize: area.width/15
+                    }
+
                     MouseArea {
                         id: mouseArea
                         anchors.fill: parent
 
                         onPressed: {                           
                             if(listRnd[index] === 0) {parent.color = tileColorEmpty; console.log("pressed")}
-                                else
-                                  { parent.color = tileColorPressed; console.log("pressed"); }
+                                                    else
+                                                     { parent.color = tileColorPressed; console.log("pressed"); }
                             controlLogic(index,drag)                           
                             //displayCoordinates()
                             //console.log(listCoX)
                             //console.log(listCoY)
+                            console.log(listRnd)
                         }
 
                         onReleased: {
                             console.log("Idx ",index," released. ", mainW.listRnd[index])
-                            if(listRnd[index] === 0) {parent.color = tileColorEmpty}
-                                                    else
-                                                     {parent.color = tileColor}
+                            if(listRnd[index] === 0) {parent.color = tileColorEmpty}        // element color
+                                                    else                                    // if the same item is dropped and released
+                                                     {parent.color = tileColor}             // at the same coordinates
 
                             //displayCoordinates()
-                            var doubledCoo = searchDoubledCoordinates(index,elemRep)
-                            console.log("Doubled coordinates in : ",doubledCoo)
-                            if(doubledCoo !== false ) {
-                                elemRep.itemAt(index).x= listCoX[doubledCoo]
+                            var doubledCoo = searchDoubledCoordinates(index,elemRep)        // doubledCoo means index, when two elements exist ( -1 = false)
+                            console.log("Doubled coordinates at : ",doubledCoo)
+                            console.log("index: ",index)
+                            displayCoordinates()                                            //////////////////////////////////////////////////////////
+                            if(doubledCoo >= 0) {                                           /////////////////// ELEMENTS SWAP ////////////////////////
+                                                                                            //////////////////////////////////////////////////////////
+                                elemRep.itemAt(index).x = listCoX[doubledCoo]
                                 elemRep.itemAt(index).y = listCoY[doubledCoo]
                                 elemRep.itemAt(doubledCoo).x = listCoX[index]
                                 elemRep.itemAt(doubledCoo).y = listCoY[index]
-                                var temporary = listRnd[index]
+
+                                var temporary = listRnd[index]                              //array elements SWAP
                                 listRnd[index] = listRnd[doubledCoo]
                                 listRnd[doubledCoo] = temporary
+                                listRndChanged()
+                                console.log("Rnd Index:   ", listRnd[index])
+                                console.log("Rnd doubled: ", listRnd[doubledCoo])
+
+                                if(listRnd[index] === 0) {
+                                    elemRep.itemAt(index).color = tileColorEmpty;
+                                    elemRep.itemAt(index).opacity = 0
+                                }
+                                if(listRnd[index] > 0) {
+                                    elemRep.itemAt(index).color = tileColor;
+                                    elemRep.itemAt(index).opacity = 1
+                                }
+
+                                if(listRnd[doubledCoo] === 0 ) {
+                                    elemRep.itemAt(doubledCoo).color = tileColorEmpty;
+                                    elemRep.itemAt(doubledCoo).opacity = 0
+                                }
+                                if(listRnd[doubledCoo] > 0) {
+                                    elemRep.itemAt(doubledCoo).color = tileColor;
+                                    elemRep.itemAt(doubledCoo).opacity = 1
+                                }
+
+                                displayCoordinates()
+                                console.log(listRnd)
+                                console.log(elemRep.itemAt(doubledCoo))
+
                             }
                         }
-                    }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "" + mainW.listRnd[index]
-                        font.bold: true
-                        font.pixelSize: area.width/15
                     }
                 }
             }
@@ -298,6 +327,7 @@ ApplicationWindow {
         colorSet();
         listCoXFill();
         listCoYFill();
+        displaySomethingFunny()
     }
 }
 
