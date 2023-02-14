@@ -1,4 +1,4 @@
-import QtQuick 2.15
+﻿import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.5
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -12,16 +12,13 @@ ApplicationWindow {
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------GLOBAL VARIABLES AND FUNCTIONS-------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
-    property int pDim: 3                                                // puzzle dimension
+    property int pDim: 4                                                // puzzle dimension
     property int elemNo: Math.pow (pDim,2)                              // number of puzzle elements including 0 (empty element)
 
     property variant listVal: []                                        // array of elements:  before draw
     property variant listRnd: []                                        //                     after draw
     property variant listCoX: []                                        // array of static X coordinates for each array elements (front-end purposes)
     property variant listCoY: []                                        // array of static Y coordinates for each array elements (front-end purposes)
-
-    property bool empty
-    property bool gameOver
 
     property color tileColor: "darkcyan"
     property color tileColorPressed: "darksalmon"
@@ -63,14 +60,13 @@ ApplicationWindow {
     function colorSet () {
         for (let i = 0; i < elemNo; i++) {                                          // function colorSet is required to refresh colors
             var rect = elemRep.itemAt(i)                                            // after listRnd and listVal drawing            
-            if(listRnd[i] === 0) {rect.color = tileColorEmpty; rect.opacity = 0 }
+            if(listRnd[i] === 0) {rect.color = tileColorEmpty; rect.opacity = 0; rect.itemValue = "" + listRnd[i] }
                                 else
-                                 {rect.color = tileColor; rect.opacity = 1 }
+                                 {rect.color = tileColor; rect.opacity = 1; rect.itemValue = "" + listRnd[i] }
         }
     }
 //--------------------------------------------------------------------------------------------------------------------------------------------------
     function controlLogic (index, drag) {
-
         let columnFirst = false                                                                       // check clicked item position
         let columnLast = false                                                                        // (reset variables each time)
         let rowFirst = false
@@ -131,7 +127,6 @@ ApplicationWindow {
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
     function specifyMoveRange(index, drag) {
-
         let currentElement = elemRep.itemAt(index)              //  function to specify
                                                                 //  the range of movement for individual elements of the board
         let itemOnRight = null
@@ -141,24 +136,24 @@ ApplicationWindow {
 
         drag.target = currentElement
 
-        if (listRnd [index + 1] === 0) {                        // when empty place on right side
-            drag.axis = Drag.XAxis
-            drag.maximumX = listCoX[ index + 1]
-            drag.minimumX = listCoX[ index]
+        if (listRnd [index + 1] === 0) {                        // if empty place on right side // "empty place" means item
+            drag.axis = Drag.XAxis                                                              // with text value "0".
+            drag.maximumX = listCoX[ index + 1]                                                 // color tileEmptyColor
+            drag.minimumX = listCoX[ index + 1]                                                    // listRnd = 0
         }
-        if (listRnd [index - 1] === 0) {                        // when empty place on left side
+        if (listRnd [index - 1] === 0) {                        // if empty place on left side
             drag.axis = Drag.XAxis
-            drag.maximumX = listCoX[ index]
+            drag.maximumX = listCoX[ index - 1]
             drag.minimumX = listCoX[ index - 1]
         }
-        if (listRnd [index + pDim] === 0) {                     // when empty place on lower row
+        if (listRnd [index + pDim] === 0) {                     // if empty place on lower row
             drag.axis = Drag.YAxis            
             drag.maximumY = listCoY [index + pDim]
-            drag.minimumY = listCoY [index]
+            drag.minimumY = listCoY [index + pDim]
         }
-        if (listRnd [index - pDim] === 0) {                     // when empty place on upper row
+        if (listRnd [index - pDim] === 0) {                     // if empty place on upper row
             drag.axis = Drag.YAxis
-            drag.maximumY = listCoY [index]
+            drag.maximumY = listCoY [index - pDim]
             drag.minimumY = listCoY [index - pDim]
         }
     }
@@ -178,19 +173,11 @@ ApplicationWindow {
         return -1
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-    function elementsSwap(index,doubledCoo) {
-
-    }
-//---------------------------------------------------------------------------------------------------------------------------------------------------
     function displayCoordinates() {
         for (let i = 0; i < elemNo; i++ ) {
             let currentItem = elemRep.itemAt(i)
             console.log("Element ",i," - x: ",currentItem.x,", y: ",currentItem.y)
         }
-    }
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-    function displaySomethingFunny() {                                                                          //test purposes
-        console.log("*&^*&%**&!$^^#(!)*$$#opjipo@*(&#(!&(^*&^@*&!*&#)@!@#$%^&*()(*&^%$$##!yi^!$!!")
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------USER INTERFACE SETTINGS---------------------------------------------------------------------
@@ -218,7 +205,8 @@ ApplicationWindow {
         onClicked: {
             listValFill()
             listRndFill()
-            listRndChanged()            
+            listRndChanged()
+            colorSet()
         }
     }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -243,11 +231,12 @@ ApplicationWindow {
                     height: area.height/pDim
                     border {color: tileColorEmpty; width: element.width/20}
                     clip: true
+                    property string itemValue: "" + mainW.listRnd[index]                     // enable reading repeater's children property
 
                     Text {
                         id: textElement
                         anchors.centerIn: parent
-                        text: "" + mainW.listRnd[index]
+                        text: parent.itemValue
                         font.bold: true
                         font.pixelSize: area.width/15
                     }
@@ -257,14 +246,12 @@ ApplicationWindow {
                         anchors.fill: parent
 
                         onPressed: {                           
-                            if(listRnd[index] === 0) {parent.color = tileColorEmpty; console.log("pressed")}
+                            if(listRnd[index] === 0) { parent.color = tileColorEmpty; console.log("pressed") }
                                                     else
-                                                     { parent.color = tileColorPressed; console.log("pressed"); }
+                                                     { parent.color = tileColorPressed; console.log("pressed") }
                             controlLogic(index,drag)                           
-                            //displayCoordinates()
-                            //console.log(listCoX)
-                            //console.log(listCoY)
                             console.log(listRnd)
+                            displayCoordinates()
                         }
 
                         onReleased: {
@@ -273,53 +260,47 @@ ApplicationWindow {
                                                     else                                    // if the same item is dropped and released
                                                      {parent.color = tileColor}             // at the same coordinates
 
-                            //displayCoordinates()
-                            var doubledCoo = searchDoubledCoordinates(index,elemRep)        // doubledCoo means index, when two elements exist ( -1 = false)
+                            let doubledCoo = searchDoubledCoordinates(index,elemRep)        // doubledCoo means index, when two elements exist ( (-1) = false)
+
+                            let textDropped = elemRep.itemAt(index).itemValue
+                            console.log("text dropped: ",textDropped)
                             console.log("Doubled coordinates at : ",doubledCoo)
                             console.log("index: ",index)
-                            displayCoordinates()                                            //////////////////////////////////////////////////////////
-                            if(doubledCoo >= 0) {                                           /////////////////// ELEMENTS SWAP ////////////////////////
-                                                                                            //////////////////////////////////////////////////////////
-                                elemRep.itemAt(index).x = listCoX[doubledCoo]
-                                elemRep.itemAt(index).y = listCoY[doubledCoo]
-                                elemRep.itemAt(doubledCoo).x = listCoX[index]
-                                elemRep.itemAt(doubledCoo).y = listCoY[index]
 
-                                var temporary = listRnd[index]                              //array elements SWAP
+                            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                            /////////////////////////////////////////////////////// ELEMENTS SWAP /////////////////////////////////////////////////////
+                            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                            if(doubledCoo >= 0) {
+                                let temporary = listRnd[index]                              //swap listRnd elements
                                 listRnd[index] = listRnd[doubledCoo]
                                 listRnd[doubledCoo] = temporary
-                                listRndChanged()
-                                console.log("Rnd Index:   ", listRnd[index])
-                                console.log("Rnd doubled: ", listRnd[doubledCoo])
 
-                                if(listRnd[index] === 0) {
-                                    elemRep.itemAt(index).color = tileColorEmpty;
-                                    elemRep.itemAt(index).opacity = 0
-                                }
-                                if(listRnd[index] > 0) {
-                                    elemRep.itemAt(index).color = tileColor;
-                                    elemRep.itemAt(index).opacity = 1
-                                }
+                                let textCompared = elemRep.itemAt(doubledCoo).itemValue
+                                elemRep.itemAt(index).itemValue = textCompared              //swap text values (numbers)
+                                elemRep.itemAt(doubledCoo).itemValue = textDropped
 
-                                if(listRnd[doubledCoo] === 0 ) {
-                                    elemRep.itemAt(doubledCoo).color = tileColorEmpty;
-                                    elemRep.itemAt(doubledCoo).opacity = 0
-                                }
-                                if(listRnd[doubledCoo] > 0) {
-                                    elemRep.itemAt(doubledCoo).color = tileColor;
-                                    elemRep.itemAt(doubledCoo).opacity = 1
-                                }
+                                elemRep.itemAt(index).x = listCoX[index]                    //leave the same coordinates for each item, cause
+                                elemRep.itemAt(index).y = listCoY[index]                    //swapping are: colors, text values, and listRnd array elements
 
+                                elemRep.itemAt(doubledCoo).x = listCoX[doubledCoo]          //
+                                elemRep.itemAt(doubledCoo).y = listCoY[doubledCoo]          //
                                 displayCoordinates()
-                                console.log(listRnd)
-                                console.log(elemRep.itemAt(doubledCoo))
 
+                                elemRep.itemAt(index).color = tileColorEmpty
+                                elemRep.itemAt(index).opacity = 0
+
+                                elemRep.itemAt(doubledCoo).color = tileColor
+                                elemRep.itemAt(doubledCoo).opacity = 1
+
+                                colorSet()
                             }
                         }
                     }
                 }
             }
         }
+
     Component.onCompleted: {
         listValFill();
         listRndFill();
