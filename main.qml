@@ -30,36 +30,83 @@ ApplicationWindow {
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------USER INTERFACE------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-    Button {
-        id: button
-        width: mainW.width/3
-        height: mainW.height/6
-        anchors.right: parent.right
+        Rectangle {
+            id: userInterface
+            width: mainW.width - area.width
+            height: mainW.height
+            anchors.right: parent.right
+            color: "darkslategrey"
 
-        background: Rectangle {
-               color: inputHandler.pressed ? "darkgoldenrod" : "midnightblue"
-               border {color: inputHandler.pressed ? "red" : "cadetblue"; width: button.width/40}
+            Button {
+                id: button
+                width: userInterface.width
+                height: userInterface.height/7
+                anchors.right: parent.right
 
-               Text {
-                     anchors.centerIn: parent
-                     color: inputHandler.pressed ? "maroon" : "aqua"
-                     text: "Generate"
-                }
+                background: Rectangle {
+                       color: inputHandler.pressed ? "darkgoldenrod" : "midnightblue"
+                       border {color: inputHandler.pressed ? "red" : "cadetblue"; width: button.width/40}
 
-               TapHandler {
-                      id: inputHandler
+                       Text {
+                             anchors.centerIn: parent
+                             color: inputHandler.pressed ? "maroon" : "aqua"
+                             text: "Generate"
+                        }
+                       TapHandler {
+                              id: inputHandler
+                        }
+                    }
+                onClicked: {
+                    Js.listValFill (elemNo)
+                    Js.listRndFill (listVal, elemNo)
+                    Js.colorSet (elemRep, listRnd, elemNo)
+                    Js.opacitySet (elemRep, listRnd, elemNo)
+                    Js.itemValueSet (elemRep, listRnd, elemNo)
+                    listRndChanged()
                 }
             }
-        onClicked: {
-            Js.listValFill (elemNo)
-            Js.listRndFill (listVal, elemNo)
-            Js.colorSet (elemRep, listRnd, elemNo)
-            Js.opacitySet (elemRep, listRnd, elemNo)
-            Js.itemValueSet (elemRep, listRnd, elemNo)
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+            Label {
+                id: label
+                width: button.width/2
+                height: button.height/2
+                x: userInterface.width/3.5
+                y: button.height * 1.75
+                text: "Select Puzzle Size"
+                font.pixelSize: 12
+                font.italic: true
+            }
 
-            listRndChanged()
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+            ComboBox {
+                id: combo
+                width: button.width/2
+                height: button.height/2
+                x: userInterface.width/4
+                y: button.height * 2
+                model: ListModel {
+                    id: comboModel
+                }
+                Component.onCompleted: {
+                       for(var i=3; i<=10; i++) {
+                           comboModel.append({text: i.toString()})
+                       }
+                }
+                onCurrentIndexChanged: {
+                            pDim = parseInt(combo.currentText)              // NOW IT PRODUCE SOME BUGS
+                            elemNo = Math.pow (pDim,2)                      // IT DOES NOT WORK PROPERLY AT ALL
+                            console.log("pDim after changing: ", pDim)      // IT REQUIRES REFACTORING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            pDimChanged()
+
+                            Js.listValFill (elemNo)
+                            Js.listRndFill (listVal, elemNo)
+                            Js.colorSet (elemRep, listRnd, elemNo)
+                            Js.opacitySet (elemRep, listRnd, elemNo)
+                            Js.itemValueSet (elemRep, listRnd, elemNo)
+                            listRndChanged()
+                }
+            }
         }
-    }
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------GAME AREA------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -106,49 +153,7 @@ ApplicationWindow {
                         }
 
                         onReleased: {
-                            console.log("Idx ",index," released. ", mainW.listRnd[index])
-                            if(listRnd[index] === 0) {parent.color = tileColorEmpty}        // element color
-                                                    else                                    // if the same item is dropped and released
-                                                     {parent.color = tileColor}             // at the same coordinates
-
-                            let doubledCoo = Js.searchDoubledCoordinates(index,elemRep)     // doubledCoo means index, when two elements exist ( (-1) = false)
-
-                            let textDropped = elemRep.itemAt(index).itemValue
-
-                            console.log("text dropped: ",textDropped)
-                            console.log("Doubled coordinates at : ",doubledCoo)
-                            console.log("index: ",index)
-
-                                    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                    ////////////////////////////////////////// ELEMENTS SWAP //////////////////////////////////////////////
-                                    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                            if(doubledCoo >= 0) {
-                                let temporary = listRnd[index]                              //swap listRnd elements
-                                listRnd[index] = listRnd[doubledCoo]
-                                listRnd[doubledCoo] = temporary
-
-                                let textCompared = elemRep.itemAt(doubledCoo).itemValue
-                                elemRep.itemAt(index).itemValue = textCompared              //swap text values (numbers)
-                                elemRep.itemAt(doubledCoo).itemValue = textDropped
-
-                                elemRep.itemAt(index).x = listCoX[index]                    //leave the same coordinates for each item, cause
-                                elemRep.itemAt(index).y = listCoY[index]                    //swapping are: colors, text values, and listRnd array elements
-
-                                elemRep.itemAt(doubledCoo).x = listCoX[doubledCoo]          //
-                                elemRep.itemAt(doubledCoo).y = listCoY[doubledCoo]          //
-                                Js.displayCoordinates (elemNo, elemRep)
-
-                                elemRep.itemAt(index).color = tileColorEmpty
-                                elemRep.itemAt(index).opacity = 0
-
-                                elemRep.itemAt(doubledCoo).color = tileColor
-                                elemRep.itemAt(doubledCoo).opacity = 1
-
-                                Js.colorSet (elemRep, listRnd, elemNo)
-                                Js.opacitySet (elemRep, listRnd, elemNo)
-                                Js.itemValueSet (elemRep, listRnd, elemNo)
-                            }
+                            Js.logicOnRelease (listRnd, index, tileColorEmpty, tileColor, elemRep, elemNo, listCoX, listCoY, parent)
                         }
                     }
                 }
