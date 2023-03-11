@@ -5,8 +5,8 @@ import "jsBackEnd.js" as Js
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 ApplicationWindow {
     id: mainW
-    width: 640
-    height: 480
+    width: 900
+    height: 640
     visible: true
     title: qsTr("nElementPuzzle")
     color: "blue"
@@ -88,18 +88,19 @@ ApplicationWindow {
                     id: comboModel
                 }
                 Component.onCompleted: {
-                       for(var i=3; i<=10; i++) {
+                       for(let i = 3; i <= 10; i++) {
                            comboModel.append({text: i.toString()})
                        }
                 }
-                onCurrentIndexChanged: {
+                onCurrentValueChanged: {
                             pDim = parseInt(combo.currentText)              // NOW IT PRODUCE SOME BUGS
                             elemNo = Math.pow (pDim,2)                      // IT DOES NOT WORK PROPERLY AT ALL
                             console.log("pDim after changing: ", pDim)      // IT REQUIRES REFACTORING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             pDimChanged()
-
                             Js.listValFill (elemNo)
                             Js.listRndFill (listVal, elemNo)
+                            Js.listCoXFill (elemNo, pDim, areaWidth);
+                            Js.listCoYFill (elemNo, pDim, areaHeight);
                             Js.colorSet (elemRep, listRnd, elemNo)
                             Js.opacitySet (elemRep, listRnd, elemNo)
                             Js.itemValueSet (elemRep, listRnd, elemNo)
