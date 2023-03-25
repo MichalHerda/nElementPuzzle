@@ -93,9 +93,9 @@ ApplicationWindow {
                        }
                 }
                 onCurrentValueChanged: {
-                            pDim = parseInt(combo.currentText)              // NOW IT PRODUCE SOME BUGS
-                            elemNo = Math.pow (pDim,2)                      // IT DOES NOT WORK PROPERLY AT ALL
-                            console.log("pDim after changing: ", pDim)      // IT REQUIRES REFACTORING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            pDim = parseInt(combo.currentText)
+                            elemNo = Math.pow (pDim,2)
+                            console.log("pDim after changing: ", pDim)
                             pDimChanged()
                             Js.listValFill (elemNo)
                             Js.listRndFill (listVal, elemNo)
@@ -144,7 +144,8 @@ ApplicationWindow {
                         id: mouseArea
                         anchors.fill: parent
 
-                        onPressed: {                           
+                        onPressed: {
+                            Js.areaRebuild(pDim, elemNo, elemRep, mainW, area, areaWidth, areaHeight, listCoX, listCoY, listRnd, drag)
                             if(listRnd[index] === 0) { parent.color = tileColorEmpty; console.log("pressed") }
                                                     else
                                                      { parent.color = tileColorPressed; console.log("pressed") }
@@ -154,7 +155,8 @@ ApplicationWindow {
                         }
 
                         onReleased: {
-                            Js.logicOnRelease (listRnd, index, tileColorEmpty, tileColor, elemRep, elemNo, listCoX, listCoY, parent)
+                            Js.logicOnRelease (listRnd, index, tileColorEmpty, tileColor, elemRep, elemNo, listCoX, listCoY, parent,
+                                               pDim, mainW, area, areaWidth, areaHeight, drag)
                         }
                     }
                 }
@@ -172,6 +174,13 @@ ApplicationWindow {
 
         listRndChanged();
     }
+    onHeightChanged: {
+        Js.listCoYFill(elemNo, pDim, areaHeight);
+        Js. areaRebuild(pDim, elemNo, elemRep, mainW, area, areaWidth, areaHeight, listCoX, listCoY, listRnd)
+    }
+    onWidthChanged: {
+        Js.listCoXFill(elemNo, pDim, areaWidth);
+        Js. areaRebuild(pDim, elemNo, elemRep, mainW, area, areaWidth, areaHeight, listCoX, listCoY, listRnd) }
 }
 
 

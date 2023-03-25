@@ -49,6 +49,7 @@
         let rowLast = false;
         let boardMiddle = false;
 
+
             if ( (index % pDim )    === 0 )     {                                                     // clicked item position
                 columnFirst = true;                                                                   // checking
                 console.log("column first");
@@ -195,7 +196,8 @@
         }
     }
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
-    function logicOnRelease (listRnd, index, tileColorEmpty, tileColor, elemRep, elemNo, listCoX, listCoY, parent) {
+    function logicOnRelease (listRnd, index, tileColorEmpty, tileColor, elemRep, elemNo, listCoX, listCoY, parent,
+                             pDim, mainW, area, areaWidth, areaHeight, drag) {
         console.log("Idx ",index," released. ", listRnd[index])
         if(listRnd[index] === 0) {parent.color = tileColorEmpty}                    // element color
                                 else                                                // if the same item is dropped and released
@@ -242,6 +244,24 @@
             colorSet (elemRep, listRnd, elemNo)
             opacitySet (elemRep, listRnd, elemNo)
             itemValueSet (elemRep, listRnd, elemNo)
+
+            areaRebuild(pDim, elemNo, elemRep, mainW, area, areaWidth, areaHeight, listCoX, listCoY, listRnd, drag)
         }
     }
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+    function areaRebuild(pDim, elemNo, elemRep, mainW, area, areaWidth, areaHeight, listCoX, listCoY, listRnd, drag) {
+        listCoXFill (elemNo, pDim, areaWidth);
+        listCoYFill (elemNo, pDim, areaHeight);
+
+        //specifyMoveRange (elemRep, listRnd, index, drag, listCoX, listCoY, pDim)
+        for(let i = 0; i < elemNo; i++) {
+            elemRep.itemAt(i).y = listCoY[i];
+            //controlLogic (elemRep, listRnd, i, drag, listCoX, listCoY, pDim)
+        }
+        for(let j = 0; j < elemNo; j++) {
+            elemRep.itemAt(j).x = listCoX[j];
+            //controlLogic (elemRep, listRnd, j, drag, listCoX, listCoY, pDim)
+        }
+    }
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
