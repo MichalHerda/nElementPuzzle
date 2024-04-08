@@ -7,6 +7,10 @@ ApplicationWindow {
     id: mainW
     width: 900
     height: 640
+    minimumWidth: 900
+    maximumWidth: 900
+    minimumHeight: 640
+    maximumHeight: 640
     visible: true
     title: qsTr("nElementPuzzle")
     color: "blue"
